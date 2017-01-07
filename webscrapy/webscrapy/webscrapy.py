@@ -1,9 +1,11 @@
 from urllib.request import urlopen
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
+import re
 from os import system
 
 SITE = "http://rank.shoryuken.com/rankings/rank/SF5?alltime=true"
+SITE2 = "http://www.pythonscraping.com/pages/page3.html"
 
 def CheckSite(url):
     """CheckSite will return the urllib object if the site is available"""
@@ -35,7 +37,6 @@ def GetBSObject(url):
         print("Could't create the BS Object")
         return None
 
-bsObj = GetBSObject(SITE)
 #if bsObj is not None:
 #    #print(bsObj)
 #    Table = bsObj.find("table", {"class":"table table-striped table-hover table-condensed"}) #Aqui ele procura por uma tabela com essa classe
@@ -63,4 +64,17 @@ def GetTableInfo(BSObj, classname):
         print("BSObject is None, load the object using GetBSObject before use this function")
         return None, None
 
-GetTableInfo(bsObj, "table table-striped table-hover table-condensed")
+#GetTableInfo(bsObj, "table table-striped table-hover table-condensed")
+
+bsObj = GetBSObject(SITE2)
+if bsObj is not None:
+    images = bsObj.findAll("img", {"src": re.compile("\.\.\/img\/gifts/img.*\.jpg")})
+    for image in images:
+        print(image["src"])
+
+### Get Siblings tags, parents, etc..
+#if bsObj is not None:
+#    for child in bsObj.find("table", {"id":"giftList"}).tr.next_siblings:
+#        print(child)
+#else:
+#    print("bsObj is None")
