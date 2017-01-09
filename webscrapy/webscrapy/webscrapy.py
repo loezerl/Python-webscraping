@@ -1,11 +1,13 @@
 from urllib.request import urlopen
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
+import requests
 import re
 from os import system
 
 SITE = "http://rank.shoryuken.com/rankings/rank/SF5?alltime=true"
 SITE2 = "http://www.pythonscraping.com/pages/page3.html"
+SITE3 = 'https://sso.pucpr.br/josso/signon/login.do?rf=1&josso_back_to=http://portal.pucpr.br/intranet/josso_security_check'
 
 def CheckSite(url):
     """CheckSite will return the urllib object if the site is available"""
@@ -67,10 +69,11 @@ def GetTableInfo(BSObj, classname):
 #GetTableInfo(bsObj, "table table-striped table-hover table-condensed")
 
 bsObj = GetBSObject(SITE2)
-if bsObj is not None:
-    images = bsObj.findAll("img", {"src": re.compile("\.\.\/img\/gifts/img.*\.jpg")})
-    for image in images:
-        print(image["src"])
+
+#if bsObj is not None:
+#    images = bsObj.findAll("img", {"src": re.compile("\.\.\/img\/gifts/img.*\.jpg")})
+#    for image in images:
+#        print(image["src"])
 
 ### Get Siblings tags, parents, etc..
 #if bsObj is not None:
@@ -80,3 +83,30 @@ if bsObj is not None:
 #    print("bsObj is None")
 
 ##PAGE 44
+
+USERNAME = 'RARARAr'
+PASSWORD = 'RARARAR'
+
+payload = {
+    'josso_cmd': 'login',
+    'josso_username': USERNAME,
+    'josso_password': PASSWORD
+}
+#Hidden Layer - Name, Value
+#Looking for the username/password class to check the Name and Value
+SITE4 = 'http://criticalart.pythonanywhere.com/admin/login/?next=/admin/'
+
+# Home page Intranet
+# 'http://portal.pucpr.br/intranet/pages/main.seam?cid=29680#'
+
+# My notes Intranet
+Mynotes = 'http://portal.pucpr.br/intranet/pages/carregarConteudo.seam?pagina=http://intranetportal.pucpr.br/intv3_aluno_index.php5?recurso=INTV3.ALUNO.PAGINA_INICIAL#'
+
+# 'http://criticalart.pythonanywhere.com/admin/Player/player/'
+with requests.session() as c:
+    c.post(SITE3, data=payload)
+    response = c.get(Mynotes)
+    print(response.headers)
+    print(response.text)
+
+
