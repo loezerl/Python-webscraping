@@ -22,6 +22,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="html_aux.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="webscrapy.py" />
   </ItemGroup>
   <PropertyGroup>

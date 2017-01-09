@@ -1,13 +1,27 @@
+#encoding: utf-8
+
+
 from urllib.request import urlopen
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
 import requests
-import re
-from os import system
+from html_aux import *
 
-SITE = "http://rank.shoryuken.com/rankings/rank/SF5?alltime=true"
-SITE2 = "http://www.pythonscraping.com/pages/page3.html"
-SITE3 = 'https://sso.pucpr.br/josso/signon/login.do?rf=1&josso_back_to=http://portal.pucpr.br/intranet/josso_security_check'
+# PUCPR - Intranet Login Page
+SITE = 'https://sso.pucpr.br/josso/signon/login.do?rf=1&josso_back_to=http://portal.pucpr.br/intranet/josso_security_check'
+
+# My Grades Intranet Page
+GradesPage = 'http://portal.pucpr.br/vda/pages/consultanotas/consultanotas.seam'
+
+
+####################################################
+####################################################
+# Change here to login into your account
+USERNAME = 'YOUR USERNAME HERE'
+PASSWORD = 'YOUR PASSWORD HERE'
+####################################################
+####################################################
+
 
 def CheckSite(url):
     """CheckSite will return the urllib object if the site is available"""
@@ -39,24 +53,13 @@ def GetBSObject(url):
         print("Could't create the BS Object")
         return None
 
-#if bsObj is not None:
-#    #print(bsObj)
-#    Table = bsObj.find("table", {"class":"table table-striped table-hover table-condensed"}) #Aqui ele procura por uma tabela com essa classe
-#    headings = [th.get_text() for th in Table.find("tr").find_all("th")] #o find pega a primeira instancia, entao o primeiro find sao os nomes das colunas!
-#    #print(headings)
-#    Players = []
-#    #Como eu nao quero o primeiro tr (headings), eu pego somente os trs apos ele que seriam as linhas da tabela
-#    for row in Table.findAll("tr")[1:]: 
-#        #Cada linha tem uma informacao para cada coluna, aqui eu simplemente peguei na posicao 2 do vetor que seria o nome do jogador
-#        Players.append(row.find_all("td")[2].get_text()) 
-#    for player in Players:
-#        print(player)
-
 
 def GetTableInfo(BSObj, classname):
     """Return Headings and Rows of a table with de classname parameter"""
     if BSObj is not None:
         Table = BSObj.find("table", {"class": classname})
+        if Table is None:
+            return None, None
         Headings = [th.get_text() for th in Table.find("tr").find_all("th")]
         Rows = []
         for row in Table.findAll("tr")[1:]:
@@ -66,27 +69,22 @@ def GetTableInfo(BSObj, classname):
         print("BSObject is None, load the object using GetBSObject before use this function")
         return None, None
 
-#GetTableInfo(bsObj, "table table-striped table-hover table-condensed")
+def GenerateHtmlFile(Rows, Nome, TCurso, NCurso):
+    file = open("%s Notas.html" % Nome, 'w', encoding = "utf-8")
+    message = "" + H_i + Name_i + Nome + Name_e + Info_i + TCurso + Info_e + Info_i + NCurso + Info_e + H_e
+    message = message + Table_i
+    for row in Rows[9:]:
+        message = message + TRow_0
+        for info in row:
+            message = message + TRow_1 + info + TRow_2
+        message = message + TRow_3
+    message = message + Table_e + bottom
+    file.write(message)   
+    file.close()
+    print("Done! Check the " + Nome + " Notas.html file")
 
-bsObj = GetBSObject(SITE2)
 
-#if bsObj is not None:
-#    images = bsObj.findAll("img", {"src": re.compile("\.\.\/img\/gifts/img.*\.jpg")})
-#    for image in images:
-#        print(image["src"])
-
-### Get Siblings tags, parents, etc..
-#if bsObj is not None:
-#    for child in bsObj.find("table", {"id":"giftList"}).tr.next_siblings:
-#        print(child)
-#else:
-#    print("bsObj is None")
-
-##PAGE 44
-
-USERNAME = 'RARARAr'
-PASSWORD = 'RARARAR'
-
+# Login system used in PUCPR - Intranet system
 payload = {
     'josso_cmd': 'login',
     'josso_username': USERNAME,
@@ -94,19 +92,28 @@ payload = {
 }
 #Hidden Layer - Name, Value
 #Looking for the username/password class to check the Name and Value
-SITE4 = 'http://criticalart.pythonanywhere.com/admin/login/?next=/admin/'
+        
 
-# Home page Intranet
-# 'http://portal.pucpr.br/intranet/pages/main.seam?cid=29680#'
 
-# My notes Intranet
-Mynotes = 'http://portal.pucpr.br/intranet/pages/carregarConteudo.seam?pagina=http://intranetportal.pucpr.br/intv3_aluno_index.php5?recurso=INTV3.ALUNO.PAGINA_INICIAL#'
-
-# 'http://criticalart.pythonanywhere.com/admin/Player/player/'
+    
 with requests.session() as c:
-    c.post(SITE3, data=payload)
-    response = c.get(Mynotes)
-    print(response.headers)
-    print(response.text)
-
+    print("Logging into PUCPR - Intranet..")
+    c.post(SITE, data=payload)
+    print("Getting GradesPage from PUCPR - Intranet..")
+    response = c.get(GradesPage)
+    bsObj = BeautifulSoup(response.text, "lxml")
+    if bsObj is not None:
+        idtbody = "consultaNotasAlunoForm:idTableProgramasAprendizagemAluno:tb"
+        tableid = "consultaNotasAlunoForm:idTableProgramasAprendizagemAluno"
+        tableclass = "rich-table "
+        print("Parsing the html file..")
+        Headings, Row = GetTableInfo(bsObj, tableclass)
+        if (Headings is None) or (Row is None):
+            print("\n\nGrades not found! Check your login and password! Please, do not change the URL in the top of the File!\n\n")
+        else:
+            Nome = bsObj.findAll("input", {"id": "consultaNotasAlunoForm:idTxtNomeAluno"})
+            Curso = bsObj.findAll("option", {"value": "1", "selected": "selected"})
+            print("Generating the html file..")
+            GenerateHtmlFile(Row, Nome[0]['value'], Curso[0].text, Curso[1].text)
+        
 
