@@ -8,3 +8,6 @@ Para executar o arquivo, basta abrir o cmd dentro da pasta que está esse projet
 ```
 python webscrapy.py
 ```
+
+Preview:
+![Preview](https://i.gyazo.com/920d9dd0f3475f79b3d56665d662429c.png)
